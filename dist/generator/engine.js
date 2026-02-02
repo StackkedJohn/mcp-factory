@@ -7,6 +7,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // Register Handlebars helper for equality check
 Handlebars.registerHelper('eq', (a, b) => a === b);
+// Register Handlebars helper for JSON stringification
+Handlebars.registerHelper('json', (value) => JSON.stringify(value));
 export async function generateServer(schema, patterns, outputDir) {
     const context = {
         name: schema.name,

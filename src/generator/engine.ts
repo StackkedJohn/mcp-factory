@@ -11,6 +11,9 @@ const __dirname = path.dirname(__filename);
 // Register Handlebars helper for equality check
 Handlebars.registerHelper('eq', (a, b) => a === b);
 
+// Register Handlebars helper for JSON stringification
+Handlebars.registerHelper('json', (value) => JSON.stringify(value));
+
 export interface GenerationContext {
   name: string;
   baseUrl: string;

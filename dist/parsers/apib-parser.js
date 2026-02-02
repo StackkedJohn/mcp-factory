@@ -24,56 +24,29 @@ export async function parseAPIBlueprint(content) {
         const apiMetadata = ast.content[0];
         const name = apiMetadata.meta?.title?.content || 'Untitled API';
         const baseUrl = extractBaseUrl(ast);
-        // Extract all endpoints
+        // Extract all endpoints with recursive category traversal
         const endpoints = [];
-        for (const resourceGroup of ast.content) {
-            if (resourceGroup.element === 'category' && hasClass(resourceGroup, 'resourceGroup')) {
-                for (const resource of resourceGroup.content) {
-                    if (resource.element === 'resource') {
-                        const resourcePath = resource.attributes?.href?.content || '';
-                        for (const transition of resource.content) {
-                            if (transition.element === 'transition') {
-                                const transaction = transition.content.find((c) => c.element === 'httpTransaction');
-                                if (transaction) {
-                                    const endpoint = parseAction(transaction, resourcePath, transition);
-                                    endpoints.push(endpoint);
-                                }
+        function extractEndpoints(items) {
+            for (const item of items) {
+                if (item.element === 'resource') {
+                    const resourcePath = item.attributes?.href?.content || '';
+                    for (const transition of item.content || []) {
+                        if (transition.element === 'transition') {
+                            const transaction = transition.content?.find((c) => c.element === 'httpTransaction');
+                            if (transaction) {
+                                const endpoint = parseAction(transaction, resourcePath, transition);
+                                endpoints.push(endpoint);
                             }
                         }
                     }
                 }
-            }
-            // Also check for resources at the top level (like in api category)
-            if (resourceGroup.element === 'category' && hasClass(resourceGroup, 'api')) {
-                for (const item of resourceGroup.content) {
-                    if (item.element === 'resource') {
-                        const resourcePath = item.attributes?.href?.content || '';
-                        for (const transition of item.content) {
-                            if (transition.element === 'transition') {
-                                const transaction = transition.content.find((c) => c.element === 'httpTransaction');
-                                if (transaction) {
-                                    const endpoint = parseAction(transaction, resourcePath, transition);
-                                    endpoints.push(endpoint);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            // Also check for resources at the very top level
-            if (resourceGroup.element === 'resource') {
-                const resourcePath = resourceGroup.attributes?.href?.content || '';
-                for (const transition of resourceGroup.content) {
-                    if (transition.element === 'transition') {
-                        const transaction = transition.content.find((c) => c.element === 'httpTransaction');
-                        if (transaction) {
-                            const endpoint = parseAction(transaction, resourcePath, transition);
-                            endpoints.push(endpoint);
-                        }
-                    }
+                else if (item.element === 'category' && item.content) {
+                    // Recursively process nested categories
+                    extractEndpoints(item.content);
                 }
             }
         }
+        extractEndpoints(ast.content);
         // Detect authentication
         const auth = detectAuth(ast);
         return {

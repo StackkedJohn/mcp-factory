@@ -5,14 +5,14 @@ export const tools = [
   {{#each endpoints}}
   {
     name: '{{id}}',
-    description: '{{description}}',
+    description: {{{json description}}},
     inputSchema: {
       type: 'object',
       properties: {
         {{#each parameters}}
         {{name}}: {
           type: '{{schema.type}}',
-          {{#if description}}description: '{{description}}',{{/if}}
+          {{#if description}}description: {{{json description}}},{{/if}}
         },
         {{/each}}
       },
