@@ -5,7 +5,7 @@ Generate production-ready MCP servers from API documentation in one command.
 ## Installation
 
 ```bash
-npm install -g @mcp-factory/cli
+npm install -g @stackkedjohn/mcp-factory-cli
 ```
 
 ## Quick Start
