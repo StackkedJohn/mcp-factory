@@ -10,6 +10,14 @@ export async function detectFormat(input) {
     catch {
         throw new ParseError(`Could not read file: ${input}`);
     }
+    // Check file extension for API Blueprint
+    if (input.endsWith('.apib') || input.endsWith('.apiblueprint')) {
+        return { format: 'apib', content };
+    }
+    // Alternatively, check content for API Blueprint markers
+    if (content.trim().startsWith('FORMAT: 1A')) {
+        return { format: 'apib', content };
+    }
     // Try parsing as JSON
     let parsed;
     try {

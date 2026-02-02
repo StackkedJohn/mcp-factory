@@ -1,4 +1,4 @@
-export type InputFormat = 'openapi' | 'swagger' | 'postman' | 'unknown';
+export type InputFormat = 'openapi' | 'swagger' | 'postman' | 'apib' | 'unknown';
 export interface DetectionResult {
     format: InputFormat;
     content: any;

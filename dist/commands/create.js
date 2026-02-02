@@ -2,6 +2,7 @@ import * as path from 'path';
 import { detectFormat } from '../parsers/detector.js';
 import { parseOpenAPI } from '../parsers/openapi.js';
 import { parsePostman } from '../parsers/postman.js';
+import { parseAPIBlueprint } from '../parsers/apib-parser.js';
 import { parseWithAI } from '../parsers/ai-parser.js';
 import { analyzePatterns } from '../generator/analyzer.js';
 import { generateServer } from '../generator/engine.js';
@@ -21,6 +22,9 @@ export async function createCommand(input, options) {
         }
         else if (detection.format === 'postman') {
             schema = parsePostman(detection.content);
+        }
+        else if (detection.format === 'apib') {
+            schema = await parseAPIBlueprint(detection.content);
         }
         else if (options.aiParse) {
             logger.info('Using AI parser for unstructured docs...');
