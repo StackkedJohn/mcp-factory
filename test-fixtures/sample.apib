@@ -1,0 +1,31 @@
+FORMAT: 1A
+HOST: https://api.example.com
+
+# Sample API
+A simple API for testing
+
+## Users Collection [/users]
+
+### List Users [GET]
+Get a list of all users
+
++ Response 200 (application/json)
+    + Body
+
+            [
+              {"id": 1, "name": "Alice"},
+              {"id": 2, "name": "Bob"}
+            ]
+
+### Create User [POST]
+Create a new user
+
++ Request (application/json)
+    + Body
+
+            {"name": "Charlie"}
+
++ Response 201 (application/json)
+    + Body
+
+            {"id": 3, "name": "Charlie"}
