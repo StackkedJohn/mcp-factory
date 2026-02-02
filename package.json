@@ -1,5 +1,5 @@
 {
-  "name": "@mcp-factory/cli",
+  "name": "@stackkedjohn/mcp-factory-cli",
   "version": "0.1.0",
   "description": "Generate production-ready MCP servers from API documentation",
   "type": "module",
