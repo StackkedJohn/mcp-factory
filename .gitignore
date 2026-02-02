@@ -4,10 +4,13 @@
 # Dependencies
 node_modules/
 
-# Build output
-dist/
+# Build output (keep for publishing to npm)
+# dist/ is needed for npm package
 build/
 
 # Environment variables
 .env
 .env.local
+
+# Generated MCP servers (examples only)
+*-mcp/
