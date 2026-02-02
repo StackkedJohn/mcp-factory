@@ -2,7 +2,7 @@ import * as fs from 'fs/promises';
 import * as yaml from 'yaml';
 import { ParseError } from '../utils/errors.js';
 
-export type InputFormat = 'openapi' | 'swagger' | 'postman' | 'unknown';
+export type InputFormat = 'openapi' | 'swagger' | 'postman' | 'apib' | 'unknown';
 
 export interface DetectionResult {
   format: InputFormat;
@@ -17,6 +17,16 @@ export async function detectFormat(input: string): Promise<DetectionResult> {
     content = await fs.readFile(input, 'utf-8');
   } catch {
     throw new ParseError(`Could not read file: ${input}`);
+  }
+
+  // Check file extension for API Blueprint
+  if (input.endsWith('.apib') || input.endsWith('.apiblueprint')) {
+    return { format: 'apib', content };
+  }
+
+  // Alternatively, check content for API Blueprint markers
+  if (content.trim().startsWith('FORMAT: 1A')) {
+    return { format: 'apib', content };
   }
 
   // Try parsing as JSON
