@@ -25,6 +25,7 @@ npm install -g @stackkedjohn/mcp-factory-cli
 
 ```bash
 # Generate MCP server from API documentation
+# Supports: OpenAPI, Swagger, API Blueprint (.apib)
 mcp-factory create ./api-docs.yaml
 
 # Build the generated server
@@ -103,6 +104,7 @@ Options:
 **Supported Formats:**
 - OpenAPI 3.x (JSON/YAML)
 - Swagger 2.0 (JSON/YAML)
+- API Blueprint (.apib)
 - Postman Collections (coming soon)
 - Unstructured docs with `--ai-parse` (coming soon)
 
@@ -110,6 +112,9 @@ Options:
 ```bash
 # Local file
 mcp-factory create ./openapi.yaml
+
+# API Blueprint file
+mcp-factory create ./api-documentation.apib
 
 # URL (coming soon)
 mcp-factory create https://api.example.com/openapi.json
