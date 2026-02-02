@@ -59,6 +59,28 @@ mcp-factory install "Neon CRM API Reference"
 # "List all upcoming events"
 ```
 
+## Real Example: API Blueprint Format
+
+```bash
+# Generate from API Blueprint (.apib) file
+mcp-factory create ./dearinventory.apib
+
+# Output:
+# ✓ Parsed API: Cin7 Core Developer Portal
+# ✓ Generated 295 tools (4,877 lines of code)
+# ✓ Full support for nested categories and complex descriptions
+
+cd "Cin7 Core Developer Portal-mcp"
+npm install && npm run build
+mcp-factory install "Cin7 Core Developer Portal"
+
+# API Blueprint features:
+# ✓ Nested resource groups
+# ✓ Multiline descriptions with formatting
+# ✓ URI templates with parameters
+# ✓ Multiple actions per resource
+```
+
 ## What Gets Generated
 
 ```
