@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/cli.js",
   "bin": {
-    "mcp-factory": "./dist/cli.js"
+    "mcp-factory": "dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
@@ -17,10 +17,22 @@
     "mcp",
     "api",
     "codegen",
-    "cli"
+    "cli",
+    "model-context-protocol",
+    "openapi",
+    "swagger",
+    "code-generation"
   ],
-  "author": "",
+  "author": "John Lohr",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/StackkedJohn/mcp-factory.git"
+  },
+  "homepage": "https://github.com/StackkedJohn/mcp-factory#readme",
+  "bugs": {
+    "url": "https://github.com/StackkedJohn/mcp-factory/issues"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.72.1",
     "commander": "^14.0.3",
