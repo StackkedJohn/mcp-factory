@@ -1,0 +1,38 @@
+import { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
+import { APIClient } from './client.js';
+
+export const tools = [
+  {{#each endpoints}}
+  {
+    name: '{{id}}',
+    description: '{{description}}',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        {{#each parameters}}
+        {{name}}: {
+          type: '{{schema.type}}',
+          {{#if description}}description: '{{description}}',{{/if}}
+        },
+        {{/each}}
+      },
+      required: [{{#each parameters}}{{#if required}}'{{name}}',{{/if}}{{/each}}],
+    },
+  },
+  {{/each}}
+];
+
+export async function handleToolCall(request: CallToolRequest, client: APIClient) {
+  const { name, arguments: args } = request.params;
+
+  {{#each endpoints}}
+  if (name === '{{id}}') {
+    const result = await client.request('{{method}}', '{{path}}', args);
+    return {
+      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+    };
+  }
+  {{/each}}
+
+  throw new Error(`Unknown tool: ${name}`);
+}

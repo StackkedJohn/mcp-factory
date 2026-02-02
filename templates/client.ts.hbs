@@ -1,0 +1,45 @@
+import fetch from 'node-fetch';
+
+export interface APIClient {
+  baseUrl: string;
+  request: (method: string, path: string, params?: any) => Promise<any>;
+}
+
+export function createClient(baseUrl: string): APIClient {
+  return {
+    baseUrl,
+    async request(method: string, path: string, params?: any) {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      {{#if (eq patterns.authPattern 'api-key')}}
+      if (process.env.API_KEY) {
+        {{#if (eq auth.location 'header')}}
+        headers['{{auth.name}}'] = process.env.API_KEY;
+        {{/if}}
+      }
+      {{/if}}
+
+      {{#if (eq patterns.authPattern 'bearer')}}
+      if (process.env.BEARER_TOKEN) {
+        headers['Authorization'] = `Bearer ${process.env.BEARER_TOKEN}`;
+      }
+      {{/if}}
+
+      const url = new URL(path, baseUrl);
+
+      const response = await fetch(url.toString(), {
+        method,
+        headers,
+        body: params ? JSON.stringify(params) : undefined,
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      return response.json();
+    },
+  };
+}

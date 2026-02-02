@@ -1,0 +1,40 @@
+# {{name}} MCP Server
+
+MCP server for the {{name}} API.
+
+## Installation
+
+```bash
+npm install
+npm run build
+```
+
+## Configuration
+
+Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "{{name}}": {
+      "command": "node",
+      "args": ["{{absolutePath}}/build/index.js"],
+      "env": {
+        {{#if (eq patterns.authPattern 'api-key')}}
+        "API_KEY": "your-api-key-here"
+        {{/if}}
+        {{#if (eq patterns.authPattern 'bearer')}}
+        "BEARER_TOKEN": "your-bearer-token-here"
+        {{/if}}
+      }
+    }
+  }
+}
+```
+
+## Usage
+
+Available tools:
+{{#each endpoints}}
+- `{{id}}`: {{description}}
+{{/each}}
