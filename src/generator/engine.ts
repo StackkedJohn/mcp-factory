@@ -11,6 +11,16 @@ const __dirname = path.dirname(__filename);
 // Register Handlebars helper for equality check
 Handlebars.registerHelper('eq', (a, b) => a === b);
 
+// Escape strings for safe embedding in JS single-quoted string literals
+Handlebars.registerHelper('jsString', (str: string) => {
+  if (!str) return '';
+  return str
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r');
+});
+
 export interface GenerationContext {
   name: string;
   baseUrl: string;

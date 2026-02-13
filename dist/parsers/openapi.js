@@ -82,15 +82,21 @@ function parseEndpoints(spec) {
  * Parse a single operation into an Endpoint
  */
 function parseOperation(path, method, operation, pathItem) {
-    const parameters = [];
-    // Parse path-level parameters
+    // Collect parameters, deduplicating by name (operation-level overrides path-level)
+    const paramMap = new Map();
+    // Parse path-level parameters first
     if (pathItem.parameters) {
-        parameters.push(...parseParameters(pathItem.parameters));
+        for (const param of parseParameters(pathItem.parameters)) {
+            paramMap.set(param.name, param);
+        }
     }
-    // Parse operation-level parameters
+    // Parse operation-level parameters (overrides path-level with same name)
     if (operation.parameters) {
-        parameters.push(...parseParameters(operation.parameters));
+        for (const param of parseParameters(operation.parameters)) {
+            paramMap.set(param.name, param);
+        }
     }
+    const parameters = Array.from(paramMap.values());
     // Parse request body (OpenAPI 3.x)
     let requestBody;
     if (operation.requestBody) {
