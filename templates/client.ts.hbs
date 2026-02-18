@@ -1,6 +1,6 @@
 export interface RequestOptions {
   pathParams?: Record<string, string>;
-  queryParams?: Record<string, string>;
+  queryParams?: Record<string, string | undefined>;
   body?: any;
 }
 

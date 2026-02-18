@@ -20,11 +20,14 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
       "command": "node",
       "args": ["{{absolutePath}}/build/index.js"],
       "env": {
-        {{#if (eq patterns.authPattern 'api-key')}}
-        "API_KEY": "your-api-key-here"
+        {{#if (eq auth.type 'api-key')}}
+        "{{envPrefix}}_API_KEY": "your-api-key-here"
         {{/if}}
-        {{#if (eq patterns.authPattern 'bearer')}}
-        "BEARER_TOKEN": "your-bearer-token-here"
+        {{#if (eq auth.type 'bearer')}}
+        "{{envPrefix}}_TOKEN": "your-token-here"
+        {{/if}}
+        {{#if (eq auth.type 'oauth')}}
+        "{{envPrefix}}_ACCESS_TOKEN": "your-access-token-here"
         {{/if}}
       }
     }
@@ -32,9 +35,8 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 }
 ```
 
-## Usage
+## Available Tools
 
-Available tools:
 {{#each endpoints}}
-- `{{id}}`: {{description}}
+- **{{toolName}}** — {{description}}
 {{/each}}

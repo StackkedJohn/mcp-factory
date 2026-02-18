@@ -1,13 +1,12 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import Handlebars from 'handlebars';
+import { buildTemplateContext } from './context-builder.js';
 import { GenerationError } from '../utils/errors.js';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// Register Handlebars helper for equality check
 Handlebars.registerHelper('eq', (a, b) => a === b);
-// Escape strings for safe embedding in JS single-quoted string literals
 Handlebars.registerHelper('jsString', (str) => {
     if (!str)
         return '';
@@ -18,19 +17,9 @@ Handlebars.registerHelper('jsString', (str) => {
         .replace(/\r/g, '\\r');
 });
 export async function generateServer(schema, patterns, outputDir) {
-    const context = {
-        name: schema.name,
-        baseUrl: schema.baseUrl,
-        auth: schema.auth,
-        endpoints: schema.endpoints,
-        patterns,
-        absolutePath: path.resolve(outputDir),
-    };
-    // Create output directory structure
+    const context = buildTemplateContext(schema, patterns, path.resolve(outputDir));
     await fs.mkdir(path.join(outputDir, 'src'), { recursive: true });
-    // Get template directory
     const templateDir = path.join(__dirname, '..', '..', 'templates');
-    // Generate files from templates
     await generateFile(templateDir, outputDir, 'package.json.hbs', 'package.json', context);
     await generateFile(templateDir, outputDir, 'tsconfig.json.hbs', 'tsconfig.json', context);
     await generateFile(templateDir, outputDir, 'README.md.hbs', 'README.md', context);
@@ -39,7 +28,6 @@ export async function generateServer(schema, patterns, outputDir) {
     await generateFile(templateDir, outputDir, 'tools.ts.hbs', 'src/tools.ts', context);
     await generateFile(templateDir, outputDir, 'types.ts.hbs', 'src/types.ts', context);
     await generateFile(templateDir, outputDir, 'validation.ts.hbs', 'src/validation.ts', context);
-    await generateFile(templateDir, outputDir, 'test.ts.hbs', 'test.ts', context);
 }
 async function generateFile(templateDir, outputDir, templateFile, outputFile, context) {
     try {
