@@ -3,7 +3,7 @@ import { z } from 'zod';
 {{#each endpoints}}
 export const {{toolName}}Schema = z.object({
   {{#each allParams}}
-  {{name}}: {{#if (eq type 'integer')}}z.number().int(){{else if (eq type 'number')}}z.number(){{else if (eq type 'boolean')}}z.boolean(){{else if (eq type 'array')}}z.array(z.any()){{else if (eq type 'object')}}z.record(z.any()){{else}}z.string(){{/if}}{{#unless required}}.optional(){{/unless}},
+  '{{name}}': {{#if (eq type 'integer')}}z.number().int(){{else if (eq type 'number')}}z.number(){{else if (eq type 'boolean')}}z.boolean(){{else if (eq type 'array')}}z.array(z.any()){{else if (eq type 'object')}}z.record(z.any()){{else}}z.string(){{/if}}{{#unless required}}.optional(){{/unless}},
   {{/each}}
 });
 
