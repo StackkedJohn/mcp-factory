@@ -41,7 +41,12 @@ function buildEndpoint(ep: Endpoint, usedNames: Map<string, number>): EndpointCo
     }
   }
 
-  const allParams = [...pathParams, ...queryParams, ...bodyParams];
+  // Deduplicate params by name: body params override query params of the same name
+  const paramMap = new Map<string, ParamContext>();
+  for (const p of [...pathParams, ...queryParams, ...bodyParams]) {
+    paramMap.set(p.name, p);
+  }
+  const allParams = Array.from(paramMap.values());
   const requiredParams = allParams.filter(p => p.required).map(p => p.name);
   const hasBody = bodyParams.length > 0 || ['POST', 'PUT', 'PATCH'].includes(ep.method);
 
@@ -79,6 +84,9 @@ function generateToolName(ep: Endpoint, usedNames: Map<string, number>): string 
     name = deriveFromPath(ep.method, ep.path);
   }
 
+  // Sanitize: convert hyphens/dots/spaces to camelCase so the name is a valid TS identifier
+  name = toCamelCase(name);
+
   const count = usedNames.get(name) || 0;
   usedNames.set(name, count + 1);
   if (count > 0) {
@@ -86,6 +94,17 @@ function generateToolName(ep: Endpoint, usedNames: Map<string, number>): string 
   }
 
   return name;
+}
+
+/**
+ * Convert a string with hyphens, dots, or spaces into camelCase.
+ * e.g. "get-an-album" -> "getAnAlbum", "some.thing" -> "someThing"
+ */
+function toCamelCase(str: string): string {
+  // Replace any non-alphanumeric/underscore chars with a separator, then camelCase
+  return str
+    .replace(/[^a-zA-Z0-9_]+(.)/g, (_, char) => char.toUpperCase())
+    .replace(/[^a-zA-Z0-9_]/g, '');
 }
 
 function deriveFromPath(method: string, path: string): string {

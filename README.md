@@ -45,7 +45,7 @@ mcp-factory create ./neon-crm-v2.11.yaml
 
 # Output:
 # ✓ Parsed API: Neon CRM API Reference
-# ✓ Generated 308 tools (5,772 lines of code)
+# ✓ Generated 276 tools (5,772 lines of code)
 # ✓ Build time: <3 seconds
 
 cd "Neon CRM API Reference-mcp"
@@ -81,7 +81,7 @@ My API-mcp/
 - ✅ **Error Handling** - Detailed error messages and retry logic
 - ✅ **Rate Limiting** - Automatic retry with exponential backoff
 - ✅ **Documentation** - Complete README with configuration examples
-- ✅ **Tests** - Basic smoke tests included
+- ✅ **Tests** - Integration tests verify generated output compiles
 
 ## Commands
 
