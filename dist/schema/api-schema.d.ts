@@ -48,7 +48,7 @@ export interface ErrorSchema {
     schema?: SchemaType;
 }
 export interface SchemaType {
-    type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+    type: 'string' | 'number' | 'integer' | 'boolean' | 'object' | 'array';
     properties?: Record<string, SchemaType>;
     items?: SchemaType;
     required?: string[];

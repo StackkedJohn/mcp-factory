@@ -1,3 +1,13 @@
+function resolveRef(spec, ref) {
+    const parts = ref.replace('#/', '').split('/');
+    let current = spec;
+    for (const part of parts) {
+        current = current?.[part];
+        if (!current)
+            return {};
+    }
+    return current;
+}
 /**
  * Parse OpenAPI 3.x or Swagger 2.0 specification into unified APISchema
  */
@@ -72,7 +82,7 @@ function parseEndpoints(spec) {
         for (const method of methods) {
             const operation = pathItem[method];
             if (operation) {
-                endpoints.push(parseOperation(path, method, operation, pathItem));
+                endpoints.push(parseOperation(path, method, operation, pathItem, spec));
             }
         }
     }
@@ -81,18 +91,18 @@ function parseEndpoints(spec) {
 /**
  * Parse a single operation into an Endpoint
  */
-function parseOperation(path, method, operation, pathItem) {
+function parseOperation(path, method, operation, pathItem, spec) {
     // Collect parameters, deduplicating by name (operation-level overrides path-level)
     const paramMap = new Map();
     // Parse path-level parameters first
     if (pathItem.parameters) {
-        for (const param of parseParameters(pathItem.parameters)) {
+        for (const param of parseParameters(pathItem.parameters, spec)) {
             paramMap.set(param.name, param);
         }
     }
     // Parse operation-level parameters (overrides path-level with same name)
     if (operation.parameters) {
-        for (const param of parseParameters(operation.parameters)) {
+        for (const param of parseParameters(operation.parameters, spec)) {
             paramMap.set(param.name, param);
         }
     }
@@ -107,7 +117,7 @@ function parseOperation(path, method, operation, pathItem) {
                 description: operation.requestBody.description || '',
                 required: operation.requestBody.required || false,
                 contentType: 'application/json',
-                schema: parseSchema(jsonContent.schema),
+                schema: parseSchema(jsonContent.schema, spec),
             };
         }
     }
@@ -120,7 +130,7 @@ function parseOperation(path, method, operation, pathItem) {
         statusCode: parseInt(successCode),
         description: successResponse.description || '',
         contentType: 'application/json',
-        schema: responseContent?.schema ? parseSchema(responseContent.schema) : { type: 'object' },
+        schema: responseContent?.schema ? parseSchema(responseContent.schema, spec) : { type: 'object' },
     };
     // Parse error responses
     const errors = [];
@@ -131,7 +141,7 @@ function parseOperation(path, method, operation, pathItem) {
             errors.push({
                 statusCode: parseInt(code),
                 description: errorResp.description || `Error ${code}`,
-                schema: errorContent?.schema ? parseSchema(errorContent.schema) : undefined,
+                schema: errorContent?.schema ? parseSchema(errorContent.schema, spec) : undefined,
             });
         }
     }
@@ -149,12 +159,10 @@ function parseOperation(path, method, operation, pathItem) {
 /**
  * Parse parameters array
  */
-function parseParameters(params) {
+function parseParameters(params, spec) {
     return params.map((param) => {
-        // Handle $ref
         if (param.$ref) {
-            // For simplicity, we'll skip resolving refs
-            return null;
+            param = resolveRef(spec, param.$ref);
         }
         // Only parse path, query, and header parameters (not body)
         if (!['path', 'query', 'header'].includes(param.in)) {
@@ -166,23 +174,26 @@ function parseParameters(params) {
             in: param.in,
             required: param.required || false,
             description: param.description || '',
-            schema: parseSchema(schema),
+            schema: parseSchema(schema, spec),
         };
     }).filter(Boolean);
 }
 /**
  * Parse JSON Schema into SchemaType
  */
-function parseSchema(schema) {
+function parseSchema(schema, spec) {
     if (!schema) {
         return { type: 'string' };
+    }
+    if (schema.$ref && spec) {
+        schema = resolveRef(spec, schema.$ref);
     }
     // Handle basic types
     if (schema.type === 'object' || schema.properties) {
         const properties = {};
         const required = schema.required || [];
         for (const [key, value] of Object.entries(schema.properties || {})) {
-            properties[key] = parseSchema(value);
+            properties[key] = parseSchema(value, spec);
         }
         return {
             type: 'object',
@@ -193,7 +204,7 @@ function parseSchema(schema) {
     if (schema.type === 'array') {
         return {
             type: 'array',
-            items: parseSchema(schema.items),
+            items: parseSchema(schema.items, spec),
         };
     }
     // Enum

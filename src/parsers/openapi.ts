@@ -1,5 +1,15 @@
 import { APISchema, Endpoint, Parameter, SchemaType, AuthConfig, RequestBody, ResponseSchema, ErrorSchema } from '../schema/api-schema.js';
 
+function resolveRef(spec: any, ref: string): any {
+  const parts = ref.replace('#/', '').split('/');
+  let current = spec;
+  for (const part of parts) {
+    current = current?.[part];
+    if (!current) return {};
+  }
+  return current;
+}
+
 /**
  * Parse OpenAPI 3.x or Swagger 2.0 specification into unified APISchema
  */
@@ -85,7 +95,7 @@ function parseEndpoints(spec: any): Endpoint[] {
     for (const method of methods) {
       const operation = (pathItem as any)[method];
       if (operation) {
-        endpoints.push(parseOperation(path, method, operation, pathItem as any));
+        endpoints.push(parseOperation(path, method, operation, pathItem as any, spec));
       }
     }
   }
@@ -96,20 +106,20 @@ function parseEndpoints(spec: any): Endpoint[] {
 /**
  * Parse a single operation into an Endpoint
  */
-function parseOperation(path: string, method: string, operation: any, pathItem: any): Endpoint {
+function parseOperation(path: string, method: string, operation: any, pathItem: any, spec: any): Endpoint {
   // Collect parameters, deduplicating by name (operation-level overrides path-level)
   const paramMap = new Map<string, Parameter>();
 
   // Parse path-level parameters first
   if (pathItem.parameters) {
-    for (const param of parseParameters(pathItem.parameters)) {
+    for (const param of parseParameters(pathItem.parameters, spec)) {
       paramMap.set(param.name, param);
     }
   }
 
   // Parse operation-level parameters (overrides path-level with same name)
   if (operation.parameters) {
-    for (const param of parseParameters(operation.parameters)) {
+    for (const param of parseParameters(operation.parameters, spec)) {
       paramMap.set(param.name, param);
     }
   }
@@ -126,7 +136,7 @@ function parseOperation(path: string, method: string, operation: any, pathItem: 
         description: operation.requestBody.description || '',
         required: operation.requestBody.required || false,
         contentType: 'application/json',
-        schema: parseSchema(jsonContent.schema),
+        schema: parseSchema(jsonContent.schema, spec),
       };
     }
   }
@@ -141,7 +151,7 @@ function parseOperation(path: string, method: string, operation: any, pathItem: 
     statusCode: parseInt(successCode),
     description: successResponse.description || '',
     contentType: 'application/json',
-    schema: responseContent?.schema ? parseSchema(responseContent.schema) : { type: 'object' },
+    schema: responseContent?.schema ? parseSchema(responseContent.schema, spec) : { type: 'object' },
   };
 
   // Parse error responses
@@ -153,7 +163,7 @@ function parseOperation(path: string, method: string, operation: any, pathItem: 
       errors.push({
         statusCode: parseInt(code),
         description: errorResp.description || `Error ${code}`,
-        schema: errorContent?.schema ? parseSchema(errorContent.schema) : undefined,
+        schema: errorContent?.schema ? parseSchema(errorContent.schema, spec) : undefined,
       });
     }
   }
@@ -173,12 +183,10 @@ function parseOperation(path: string, method: string, operation: any, pathItem: 
 /**
  * Parse parameters array
  */
-function parseParameters(params: any[]): Parameter[] {
+function parseParameters(params: any[], spec: any): Parameter[] {
   return params.map((param) => {
-    // Handle $ref
     if (param.$ref) {
-      // For simplicity, we'll skip resolving refs
-      return null;
+      param = resolveRef(spec, param.$ref);
     }
 
     // Only parse path, query, and header parameters (not body)
@@ -193,7 +201,7 @@ function parseParameters(params: any[]): Parameter[] {
       in: param.in as 'path' | 'query' | 'header',
       required: param.required || false,
       description: param.description || '',
-      schema: parseSchema(schema),
+      schema: parseSchema(schema, spec),
     };
   }).filter(Boolean) as Parameter[];
 }
@@ -201,9 +209,13 @@ function parseParameters(params: any[]): Parameter[] {
 /**
  * Parse JSON Schema into SchemaType
  */
-function parseSchema(schema: any): SchemaType {
+function parseSchema(schema: any, spec?: any): SchemaType {
   if (!schema) {
     return { type: 'string' };
+  }
+
+  if (schema.$ref && spec) {
+    schema = resolveRef(spec, schema.$ref);
   }
 
   // Handle basic types
@@ -212,7 +224,7 @@ function parseSchema(schema: any): SchemaType {
     const required = schema.required || [];
 
     for (const [key, value] of Object.entries(schema.properties || {})) {
-      properties[key] = parseSchema(value);
+      properties[key] = parseSchema(value, spec);
     }
 
     return {
@@ -225,7 +237,7 @@ function parseSchema(schema: any): SchemaType {
   if (schema.type === 'array') {
     return {
       type: 'array',
-      items: parseSchema(schema.items),
+      items: parseSchema(schema.items, spec),
     };
   }
 
