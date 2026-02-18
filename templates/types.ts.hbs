@@ -1,1 +1,8 @@
-export {}; // Types generated from API schema
+{{#each endpoints}}
+export interface {{toolName}}Params {
+  {{#each allParams}}
+  {{name}}{{#unless required}}?{{/unless}}: {{#if (eq type 'integer')}}number{{else if (eq type 'number')}}number{{else if (eq type 'boolean')}}boolean{{else if (eq type 'array')}}any[]{{else if (eq type 'object')}}Record<string, any>{{else}}string{{/if}};
+  {{/each}}
+}
+
+{{/each}}
