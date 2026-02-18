@@ -1,45 +1,96 @@
-import fetch from 'node-fetch';
+export interface RequestOptions {
+  pathParams?: Record<string, string>;
+  queryParams?: Record<string, string>;
+  body?: any;
+}
 
 export interface APIClient {
   baseUrl: string;
-  request: (method: string, path: string, params?: any) => Promise<any>;
+  request: (method: string, pathTemplate: string, options?: RequestOptions) => Promise<any>;
 }
 
 export function createClient(baseUrl: string): APIClient {
   return {
     baseUrl,
-    async request(method: string, path: string, params?: any) {
+    async request(method: string, pathTemplate: string, options: RequestOptions = {}) {
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
 
-      {{#if (eq patterns.authPattern 'api-key')}}
-      if (process.env.API_KEY) {
-        {{#if (eq auth.location 'header')}}
-        headers['{{auth.name}}'] = process.env.API_KEY;
-        {{/if}}
+      {{#if (eq auth.type 'api-key')}}
+      {{#if (eq auth.location 'header')}}
+      if (process.env.{{envPrefix}}_API_KEY) {
+        headers['{{auth.name}}'] = process.env.{{envPrefix}}_API_KEY;
+      }
+      {{/if}}
+      {{/if}}
+      {{#if (eq auth.type 'bearer')}}
+      if (process.env.{{envPrefix}}_TOKEN) {
+        headers['Authorization'] = `Bearer ${process.env.{{envPrefix}}_TOKEN}`;
+      }
+      {{/if}}
+      {{#if (eq auth.type 'oauth')}}
+      if (process.env.{{envPrefix}}_ACCESS_TOKEN) {
+        headers['Authorization'] = `Bearer ${process.env.{{envPrefix}}_ACCESS_TOKEN}`;
+      }
+      {{/if}}
+      {{#if (eq auth.type 'basic')}}
+      if (process.env.{{envPrefix}}_USER && process.env.{{envPrefix}}_PASS) {
+        const creds = Buffer.from(
+          `${process.env.{{envPrefix}}_USER}:${process.env.{{envPrefix}}_PASS}`
+        ).toString('base64');
+        headers['Authorization'] = `Basic ${creds}`;
       }
       {{/if}}
 
-      {{#if (eq patterns.authPattern 'bearer')}}
-      if (process.env.BEARER_TOKEN) {
-        headers['Authorization'] = `Bearer ${process.env.BEARER_TOKEN}`;
+      // Substitute path parameters
+      let resolvedPath = pathTemplate;
+      if (options.pathParams) {
+        for (const [key, value] of Object.entries(options.pathParams)) {
+          resolvedPath = resolvedPath.replace(`{${key}}`, encodeURIComponent(value));
+        }
+      }
+
+      const url = new URL(resolvedPath, baseUrl);
+
+      // Append query parameters
+      if (options.queryParams) {
+        for (const [key, value] of Object.entries(options.queryParams)) {
+          if (value !== undefined && value !== null) {
+            url.searchParams.append(key, String(value));
+          }
+        }
+      }
+
+      {{#if (eq auth.type 'api-key')}}
+      {{#if (eq auth.location 'query')}}
+      if (process.env.{{envPrefix}}_API_KEY) {
+        url.searchParams.append('{{auth.name}}', process.env.{{envPrefix}}_API_KEY);
       }
       {{/if}}
+      {{/if}}
 
-      const url = new URL(path, baseUrl);
+      const fetchOptions: RequestInit = { method, headers };
 
-      const response = await fetch(url.toString(), {
-        method,
-        headers,
-        body: params ? JSON.stringify(params) : undefined,
-      });
+      if (options.body && ['POST', 'PUT', 'PATCH'].includes(method)) {
+        fetchOptions.body = JSON.stringify(options.body);
+      }
+
+      const response = await fetch(url.toString(), fetchOptions);
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        const errorBody = await response.text().catch(() => '');
+        throw new Error(
+          `API error ${response.status}: ${response.statusText}${errorBody ? ` - ${errorBody}` : ''}`
+        );
       }
 
-      return response.json();
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        return text;
+      }
     },
   };
 }

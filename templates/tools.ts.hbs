@@ -4,30 +4,55 @@ import { APIClient } from './client.js';
 export const tools = [
   {{#each endpoints}}
   {
-    name: '{{id}}',
+    name: '{{toolName}}',
     description: '{{{jsString description}}}',
     inputSchema: {
-      type: 'object',
+      type: 'object' as const,
       properties: {
-        {{#each parameters}}
+        {{#each allParams}}
         '{{name}}': {
-          type: '{{schema.type}}',
+          type: '{{type}}',
           {{#if description}}description: '{{{jsString description}}}',{{/if}}
         },
         {{/each}}
       },
-      required: [{{#each parameters}}{{#if required}}'{{name}}',{{/if}}{{/each}}],
+      required: [{{#each requiredParams}}'{{this}}',{{/each}}],
     },
   },
   {{/each}}
 ];
 
 export async function handleToolCall(request: CallToolRequest, client: APIClient) {
-  const { name, arguments: args } = request.params;
+  const { name, arguments: args = {} } = request.params;
 
   {{#each endpoints}}
-  if (name === '{{id}}') {
-    const result = await client.request('{{method}}', '{{path}}', args);
+  if (name === '{{toolName}}') {
+    const result = await client.request('{{method}}', '{{pathTemplate}}', {
+      {{#if pathParams.length}}
+      pathParams: {
+        {{#each pathParams}}
+        '{{name}}': String(args['{{name}}'] ?? ''),
+        {{/each}}
+      },
+      {{/if}}
+      {{#if queryParams.length}}
+      queryParams: {
+        {{#each queryParams}}
+        '{{name}}': args['{{name}}'] != null ? String(args['{{name}}']) : undefined,
+        {{/each}}
+      },
+      {{/if}}
+      {{#if hasBody}}
+      body: {
+        {{#each bodyParams}}
+        ...(args['{{name}}'] !== undefined && { '{{name}}': args['{{name}}'] }),
+        {{/each}}
+        {{#unless bodyParams.length}}
+        ...args,
+        {{/unless}}
+      },
+      {{/if}}
+    });
     return {
       content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
     };
