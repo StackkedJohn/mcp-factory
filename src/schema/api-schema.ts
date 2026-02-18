@@ -85,3 +85,33 @@ export interface DetectedPatterns {
   errorFormat: 'standard' | 'custom';
   hasWebhooks: boolean;
 }
+
+export interface ParamContext {
+  name: string;
+  type: string;
+  required: boolean;
+  description: string;
+}
+
+export interface EndpointContext {
+  toolName: string;
+  description: string;
+  method: string;
+  pathTemplate: string;
+  pathParams: ParamContext[];
+  queryParams: ParamContext[];
+  bodyParams: ParamContext[];
+  hasBody: boolean;
+  allParams: ParamContext[];
+  requiredParams: string[];
+}
+
+export interface TemplateContext {
+  name: string;
+  baseUrl: string;
+  auth: AuthConfig;
+  endpoints: EndpointContext[];
+  patterns: DetectedPatterns;
+  absolutePath?: string;
+  envPrefix: string;
+}
