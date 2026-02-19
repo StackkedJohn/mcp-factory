@@ -4,6 +4,12 @@
   "description": "Generate production-ready MCP servers from API documentation",
   "type": "module",
   "main": "dist/cli.js",
+  "files": [
+    "dist",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
   "bin": {
     "mcp-factory": "dist/cli.js"
   },
