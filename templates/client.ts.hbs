@@ -51,7 +51,9 @@ export function createClient(baseUrl: string): APIClient {
         }
       }
 
-      const url = new URL(resolvedPath, baseUrl);
+      // Concatenate base + path to preserve any path prefix in baseUrl
+      // (new URL('/path', 'https://host/v1') would strip /v1)
+      const url = new URL(baseUrl.replace(/\/+$/, '') + resolvedPath);
 
       // Append query parameters
       if (options.queryParams) {

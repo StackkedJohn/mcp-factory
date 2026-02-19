@@ -1,5 +1,6 @@
 import { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
 import { APIClient } from './client.js';
+import * as schemas from './validation.js';
 
 export const tools = [
   {{#each endpoints}}
@@ -27,28 +28,31 @@ export async function handleToolCall(request: CallToolRequest, client: APIClient
 
   {{#each endpoints}}
   if (name === '{{toolName}}') {
+    const validated = schemas.{{toolName}}Schema.parse(args);
     const result = await client.request('{{method}}', '{{pathTemplate}}', {
       {{#if pathParams.length}}
       pathParams: {
         {{#each pathParams}}
-        '{{name}}': String(args['{{name}}'] ?? ''),
+        '{{name}}': String(validated['{{name}}'] ?? ''),
         {{/each}}
       },
       {{/if}}
       {{#if queryParams.length}}
       queryParams: {
         {{#each queryParams}}
-        '{{name}}': args['{{name}}'] != null ? String(args['{{name}}']) : undefined,
+        '{{name}}': validated['{{name}}'] != null ? String(validated['{{name}}']) : undefined,
         {{/each}}
       },
       {{/if}}
       {{#if hasBody}}
       body: {
         {{#each bodyParams}}
-        ...(args['{{name}}'] !== undefined && { '{{name}}': args['{{name}}'] }),
+        ...(validated['{{name}}'] !== undefined && { '{{name}}': validated['{{name}}'] }),
         {{/each}}
         {{#unless bodyParams.length}}
-        ...args,
+        ...Object.fromEntries(Object.entries(validated).filter(([k]) =>
+          ![{{#each pathParams}}'{{name}}',{{/each}}{{#each queryParams}}'{{name}}',{{/each}}].includes(k)
+        )),
         {{/unless}}
       },
       {{/if}}

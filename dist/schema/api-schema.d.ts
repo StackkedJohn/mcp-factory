@@ -95,6 +95,8 @@ export interface EndpointContext {
 }
 export interface TemplateContext {
     name: string;
+    packageName: string;
+    displayDescription: string;
     baseUrl: string;
     auth: AuthConfig;
     endpoints: EndpointContext[];

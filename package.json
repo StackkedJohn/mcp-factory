@@ -1,6 +1,6 @@
 {
   "name": "@stackkedjohn/mcp-factory-cli",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Generate production-ready MCP servers from API documentation",
   "type": "module",
   "main": "dist/cli.js",
@@ -40,7 +40,6 @@
     "url": "https://github.com/StackkedJohn/mcp-factory/issues"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.72.1",
     "commander": "^14.0.3",
     "handlebars": "^4.7.8",
     "yaml": "^2.8.2",

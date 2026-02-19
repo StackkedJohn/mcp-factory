@@ -9,6 +9,8 @@ export function buildTemplateContext(
 
   return {
     name: schema.name,
+    packageName: toPackageName(schema.name),
+    displayDescription: toDisplayDescription(schema.name),
     baseUrl: schema.baseUrl,
     auth: schema.auth,
     endpoints: schema.endpoints.map(ep => buildEndpoint(ep, usedNames)),
@@ -135,10 +137,33 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function toEnvPrefix(name: string): string {
+function toPackageName(name: string): string {
   return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    + '-mcp';
+}
+
+function toDisplayDescription(name: string): string {
+  // Avoid "Weather API API" — only append "API" if name doesn't already contain it
+  if (/\bapi\b/i.test(name)) {
+    return `MCP server for ${name}`;
+  }
+  return `MCP server for the ${name} API`;
+}
+
+function toEnvPrefix(name: string): string {
+  // Use only the first few meaningful words to avoid absurdly long env var names
+  const prefix = name
     .replace(/[^a-zA-Z0-9]+/g, '_')
     .replace(/_+/g, '_')
     .replace(/^_|_$/g, '')
     .toUpperCase();
+  // Cap at first 3 segments (e.g. "SPOTIFY_WEB_API" not "SPOTIFY_WEB_API_WITH_FIXES_AND_...")
+  const segments = prefix.split('_');
+  if (segments.length > 3) {
+    return segments.slice(0, 3).join('_');
+  }
+  return prefix;
 }

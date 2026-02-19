@@ -1,12 +1,12 @@
 {
-  "name": "{{name}}-mcp",
+  "name": "{{packageName}}",
   "version": "1.0.0",
-  "description": "MCP server for {{name}} API",
+  "description": "{{displayDescription}}",
   "type": "module",
   "main": "build/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "node --test test.ts"
+    "test": "tsc --noEmit"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",

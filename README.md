@@ -10,10 +10,10 @@ MCP Factory is a CLI tool that generates complete, type-safe Model Context Proto
 ## Why MCP Factory?
 
 - **Zero manual coding** - Generates complete TypeScript MCP servers automatically
-- **Production-ready output** - Type-safe code with validation, error handling, and auth
+- **Type-safe output** - Full TypeScript types with Zod input validation on every tool
 - **Complete API coverage** - Every endpoint becomes an MCP tool
 - **Works anywhere** - Run from any directory, point to any API docs
-- **One-command install** - Automatically configures Claude Desktop/Code
+- **Auto-install** - Configures Claude Desktop/Code with one command
 
 ## Installation
 
@@ -64,7 +64,7 @@ mcp-factory install "Neon CRM API Reference"
 My API-mcp/
 ├── src/
 │   ├── index.ts          # MCP server implementation
-│   ├── client.ts         # HTTP client with auth & retry logic
+│   ├── client.ts         # HTTP client with auth handling
 │   ├── tools.ts          # Tool handlers for each endpoint
 │   ├── types.ts          # TypeScript type definitions
 │   └── validation.ts     # Zod schemas for input validation
@@ -76,12 +76,11 @@ My API-mcp/
 
 ### Generated Code Features
 
-- ✅ **Type Safety** - Full TypeScript types and Zod validation
-- ✅ **Authentication** - Handles OAuth, API keys, Bearer tokens
-- ✅ **Error Handling** - Detailed error messages and retry logic
-- ✅ **Rate Limiting** - Automatic retry with exponential backoff
+- ✅ **Type Safety** - Full TypeScript types and Zod input validation on every tool
+- ✅ **Authentication** - Handles OAuth, API keys, Bearer tokens, Basic auth
+- ✅ **Error Handling** - Detailed error messages with status codes
 - ✅ **Documentation** - Complete README with configuration examples
-- ✅ **Tests** - Integration tests verify generated output compiles
+- ✅ **Type Checking** - Generated projects include `npm test` for type verification
 
 ## Commands
 
@@ -239,13 +238,13 @@ Claude automatically uses the MCP server tools to make API calls.
 2. **API Parsing** - Extracts endpoints, parameters, auth patterns, and schemas
 3. **Pattern Analysis** - Detects pagination, rate limiting, and error formats
 4. **Code Generation** - Creates TypeScript MCP server with Handlebars templates
-5. **Optimization** - Only generates code for patterns your API actually uses
+5. **Output** - Generates clean TypeScript with only the auth pattern your API uses
 
 **Key Design Decisions:**
 - Generate code, don't use runtime abstraction (transparent, no black box)
 - TypeScript for type safety and IDE support
-- Minimal dependencies (MCP SDK, Zod, Handlebars)
-- Pattern-aware generation (lean output, no unused code)
+- Minimal dependencies (MCP SDK, Zod)
+- Auth-aware generation (only includes code for your API's auth pattern)
 
 ## Development
 
